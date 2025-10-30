@@ -8,7 +8,7 @@ import os
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
-def eval_pth(voxel, checkpoint_path, view_state=None):
+def eval_pth(voxel, checkpoint_path, view_state=None,threshold=0.5):
     test_data = voxel.to(torch.float32)
 
     model = SCVP(net_type='SCVP' if view_state==None else "MASCVP").to(DEVICE)
@@ -16,11 +16,11 @@ def eval_pth(voxel, checkpoint_path, view_state=None):
     checkpoint = torch.load(checkpoint_path,map_location = torch.device('cpu'))
     model.load_state_dict(checkpoint['state_dict'])
 
-    print('EVALUATING')
+    # print('EVALUATING')
     model.eval()
     grid = test_data.to(DEVICE)
     if view_state is not None:
-        print('MA-SCVP')
+        # print('MA-SCVP')
         view_state = view_state.to(torch.float32)
         view_state = view_state.to(DEVICE)
 
@@ -30,10 +30,10 @@ def eval_pth(voxel, checkpoint_path, view_state=None):
 
     endTime = time.time()
     print('run time is ' + str(endTime-startTime))
-    np.savetxt('./run_time/'+name_of_model+'.txt',np.asarray([endTime-startTime]))
+    # np.savetxt('./run_time/'+name_of_model+'.txt',np.asarray([endTime-startTime]))
     
-    output[output >= 0.5] = 1
-    output[output < 0.5] = 0
+    output[output >= threshold] = 1
+    output[output < threshold] = 0
     # print(output.shape)
 
     return output
